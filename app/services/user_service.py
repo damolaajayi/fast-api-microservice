@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from app.models.user import User, Gender, Role
+from app.models.user import User, Gender, Role, UserUpdateRequest
 from uuid import UUID, uuid4
 from typing import List
 
@@ -35,4 +35,21 @@ def remove_user(user_id: UUID):
      raise HTTPException(
     status_code=404, 
     detail=f"User with id {user_id} not found")
+     
+     
+def update_user(user_id: UUID, user_update: UserUpdateRequest):
+    for user in db:
+        if user.id == user_id:
+            if user_update.first_name:
+                user.first_name = user_update.first_name
+            if user_update.last_name:
+                user.last_name = user_update.last_name
+            if user_update.middle_name:
+                user.middle_name = user_update.middle_name
+            if user_update.roles:
+                user.roles = user_update.roles
+            return {"message": f"User with id : {user_id} updated successfully"}
+    raise HTTPException(
+        status_code=404, 
+        detail=f"User with id {user_id} not found")
      
