@@ -3,6 +3,7 @@ from app.models.user import User, Gender, Role, UserUpdateRequest
 from uuid import UUID, uuid4
 from typing import List
 
+
 db: List[User] = [
     User(id=uuid4(), 
          first_name="Jamila", 
@@ -18,16 +19,19 @@ db: List[User] = [
     )
 ]
 
-def get_users():
+def get_users_db():
+     return db
+
+def get_all_users(db: List[User]):
     return db
 
 
-def register_user(user: User):
+def register_user(user: User, db: List[User]):
      db.append(user)
      return {"id": user.id}
 
 
-def remove_user(user_id: UUID):
+def remove_user(user_id: UUID, db: List[User]):
      for user in db:
           if user.id == user_id:
                db.remove(user)
@@ -37,7 +41,7 @@ def remove_user(user_id: UUID):
     detail=f"User with id {user_id} not found")
      
      
-def update_user(user_id: UUID, user_update: UserUpdateRequest):
+def update_user(user_id: UUID, user_update: UserUpdateRequest, db: List[User]):
     for user in db:
         if user.id == user_id:
             if user_update.first_name:
