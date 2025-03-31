@@ -1,59 +1,42 @@
 from fastapi import HTTPException
-from app.models.user import User, Gender, Role, UserUpdateRequest
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import NoResultFound
+from app.schemas.user_schema import UserCreate, UserUpdate
+from app.models.user import User
 from uuid import UUID, uuid4
 from typing import List
 
 
-db: List[User] = [
-    User(id=uuid4(), 
-         first_name="Jamila", 
-         last_name="Adeoye",
-         gender=Gender.female,
-         roles=[Role.student]
-    ),
-    User(id=uuid4(), 
-         first_name="Alex", 
-         last_name="Jones",
-         gender=Gender.male,
-         roles=[Role.admin, Role.user]
-    )
-]
-
-def get_users_db():
-     return db
-
-def get_all_users(db: List[User]):
-    return db
+async def get_all_users(db: AsyncSession):
+     result = await db.execute(select(User))
+     return result.scalars().all()
 
 
-def register_user(user: User, db: List[User]):
-     db.append(user)
-     return {"id": user.id}
+async def register_user(user: User, db: AsyncSession):
+     new_user = User(**user.dict())
+     db.add(new_user)
+     await db.commit()
+     await db.refresh(new_user)
+     return new_user
 
 
-def remove_user(user_id: UUID, db: List[User]):
-     for user in db:
-          if user.id == user_id:
-               db.remove(user)
-               return {"message": f"User with id : {user_id} deleted successfully"}
-     raise HTTPException(
-    status_code=404, 
-    detail=f"User with id {user_id} not found")
+async def remove_user(user_id: UUID, db: AsyncSession):
+     result = await db.execute(select(User).where(User.id == user_id))
+     user = result.scalars().first()
+     if not user:
+          raise HTTPException(404, detail="User not found")
+     await db.delete(user)
+     await db.commit()
+     return {"detail": f"User with id {user_id} deleted successfully"}
      
-     
-def update_user(user_id: UUID, user_update: UserUpdateRequest, db: List[User]):
-    for user in db:
-        if user.id == user_id:
-            if user_update.first_name:
-                user.first_name = user_update.first_name
-            if user_update.last_name:
-                user.last_name = user_update.last_name
-            if user_update.middle_name:
-                user.middle_name = user_update.middle_name
-            if user_update.roles:
-                user.roles = user_update.roles
-            return {"message": f"User with id : {user_id} updated successfully"}
-    raise HTTPException(
-        status_code=404, 
-        detail=f"User with id {user_id} not found")
-     
+async def update_user(user_id: UUID, user_update: UserUpdate, db: AsyncSession):
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalars().first()
+    if not user:
+          raise HTTPException(404, detail="User not found")
+    for key, value in user_update.model_dump(exclude_unset=True).items():
+          setattr(user, key, value)
+    await db.commit()
+    await db.refresh(user)
+    return user
