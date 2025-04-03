@@ -5,7 +5,7 @@ import uuid
 from pydantic import BaseModel
 from enum import Enum
 
-from app.db.database import Base
+from app.db.session import Base
 
 class GenderEnum(str, Enum):
     male = "male"
@@ -23,10 +23,8 @@ class User(Base):
     last_name = Column(String, nullable=False)
     middle_name = Column(String, nullable=True)
     gender= Column(String, nullable=False)
+    username = Column(String, unique=True, nullable=True)
+    email = Column(String, unique=True, nullable=False)
+    password = Column(String, nullable=False)
     roles= Column(ARRAY(SQLEnum(RoleEnum)))
     
-# class UserUpdateRequest(BaseModel):
-#     first_name: Optional[str] = None
-#     last_name: Optional[str] = None
-#     middle_name: Optional[str] = None
-#     roles: Optional[List[Role]] = None
