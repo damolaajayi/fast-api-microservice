@@ -1,3 +1,4 @@
+import time
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import jwt, JWTError
@@ -29,4 +30,11 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(b
     if user is None:
         raise credentials_exception
     return user
+
+
+async def send_welcome_email(email: str, username: str):
+    # Placeholder for sending email logic
+    print(f"Starting to send email to {email}")
+    time.sleep(5)  # simulate delay
+    print(f"Email sent to {email}")
     

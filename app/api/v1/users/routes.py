@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status, BackgroundTasks
 from app.api.v1.users.models import GenderEnum, RoleEnum, User
 from app.api.v1.users.schemas import UserCreate, UserListResponse, UserOut, UserResponse, UserUpdate
 from app.api.v1.users.services import get_all_users, get_user_by_id, register_user, remove_user, update_user
@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.security import OAuth2PasswordRequestForm
 from app.schemas.response import APIResponse
 from app.schemas.token import TokenResponse
-from app.services.dependencies import get_current_user
+from app.services.dependencies import get_current_user, send_welcome_email
 from app.db.session import get_db
 from uuid import UUID
 
@@ -35,9 +35,12 @@ async def retrieve_user(user_id: UUID, db: AsyncSession =  Depends(get_db), curr
         data=get_users
     )
 
-@router.post("", response_model=APIResponse[UserOut], status_code=status.HTTP_201_CREATED)
-async def add_user(user: UserCreate, db: AsyncSession =  Depends(get_db)) -> APIResponse[list[UserOut]]:
+@router.post("/register", response_model=APIResponse[UserOut], status_code=status.HTTP_201_CREATED)
+async def add_user(user: UserCreate, background_tasks:BackgroundTasks, db: AsyncSession =  Depends(get_db)) -> APIResponse[list[UserOut]]:
     new_user = await register_user(user, db)
+    background_tasks.add_task(
+        send_welcome_email, email=new_user.email, username=new_user.username
+    )
     return APIResponse(
         status_code=status.HTTP_201_CREATED,
         message="User created successfully",
