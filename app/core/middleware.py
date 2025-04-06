@@ -11,6 +11,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         duration = time.time() - start
 
-        logger.info(f"{request.method} {request.url.path} "
+        logger.info(f"{request.method} {request.url.path}"
                     f"→ {response.status_code} ({duration:.2f}s)")
         return response

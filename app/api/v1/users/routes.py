@@ -12,6 +12,8 @@ from app.services.dependencies import get_current_user, send_welcome_email
 from app.db.session import get_db
 from uuid import UUID
 
+from app.workers.tasks import send_email_task
+
 router = APIRouter()
 
 @router.get("", response_model=APIResponse[UserListResponse], status_code=status.HTTP_200_OK) 
@@ -38,9 +40,7 @@ async def retrieve_user(user_id: UUID, db: AsyncSession =  Depends(get_db), curr
 @router.post("/register", response_model=APIResponse[UserOut], status_code=status.HTTP_201_CREATED)
 async def add_user(user: UserCreate, background_tasks:BackgroundTasks, db: AsyncSession =  Depends(get_db)) -> APIResponse[list[UserOut]]:
     new_user = await register_user(user, db)
-    background_tasks.add_task(
-        send_welcome_email, email=new_user.email, username=new_user.username
-    )
+    send_email_task.delay(new_user.email)
     return APIResponse(
         status_code=status.HTTP_201_CREATED,
         message="User created successfully",

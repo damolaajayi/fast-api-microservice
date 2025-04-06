@@ -32,7 +32,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(b
     return user
 
 
-async def send_welcome_email(email: str, username: str):
+def send_welcome_email(email: str, username: str):
     # Placeholder for sending email logic
     print(f"Starting to send email to {email}")
     time.sleep(5)  # simulate delay
