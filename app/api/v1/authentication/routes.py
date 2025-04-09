@@ -12,7 +12,7 @@ from app.services.auth.jwt import create_access_token, create_refresh_token, ver
 router = APIRouter()
 
 
-@router.post("/token", response_model=APIResponse[TokenPairResponse], status_code=status.HTTP_200_OK)
+@router.post("/login", response_model=APIResponse[TokenPairResponse], status_code=status.HTTP_200_OK)
 async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db))-> APIResponse[TokenResponse]:
     user = await authenticate_user(db, payload.username, payload.password)
     if not user:
