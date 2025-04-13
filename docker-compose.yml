@@ -1,20 +1,9 @@
 services:
-  fastapi:
-    build: .
-    container_name: fastapi_app
-    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
-    ports:
-      - "8000:8000"
-    depends_on:
-      - postgres
-      - redis
-    env_file:
-      - .env
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/1
   postgres:
     image: postgres:17
+    container_name: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -22,12 +11,56 @@ services:
     ports:
       - "5432:5432"
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  alembic:
+    build: .
+    container_name: alembic_runner
+    command: >
+      sh -c "./wait-for-it.sh postgres:5432 --timeout=30 --strict -- &&
+             alembic upgrade head"
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/app
+
+  fastapi:
+    build: .
+    command: >
+      sh -c "uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      alembic:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+      - PYTHONPATH=/app
+
   celery_worker:
     build: .
     container_name: celery_worker
     command: celery -A app.core.celery_config.celery_app worker --loglevel=info
     depends_on:
       - redis
+    env_file:
+      - .env
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/1
@@ -38,12 +71,11 @@ services:
     command: celery -A app.core.celery_config.celery_app beat --loglevel=info
     depends_on:
       - redis
+    env_file:
+      - .env
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/1
 
-  redis:
-    image: redis:7-alpine
-    container_name: redis
-    ports:
-      - "6379:6379"
+volumes:
+  postgres_data:

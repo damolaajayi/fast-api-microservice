@@ -1,14 +1,23 @@
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.encoders import jsonable_encoder
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from app.core.cache import init_cache
+from app.db.session import get_db
+from app.api.v1.users.models import User
+import asyncio
 from app.api.api_router import router as api_router
 from app.core.expection_handlers import register_exception_handlers
 from app.schemas.response import ErrorResponse
 from app.core.middleware import LoggingMiddleware
+from app.db.session import engine
+from app.db.session import Base
+
+
+
 app = FastAPI(title="My First FastAPI",version=
             "0.1",description="This is my first FastAPI project")
 
+
+@app.on_event("startup")
+async def startup():
+    await init_cache()
 
 
 

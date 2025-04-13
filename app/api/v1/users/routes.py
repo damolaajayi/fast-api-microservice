@@ -5,7 +5,7 @@ from app.api.v1.users.schemas import UserCreate, UserListResponse, UserOut, User
 from app.api.v1.users.services import get_all_users, get_user_by_id, register_user, remove_user, update_user
 from app.core.logger import logger
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi_cache.decorator import cache
 from app.schemas.response import APIResponse
 from app.schemas.token import TokenResponse
 from app.services.dependencies import get_current_user, send_welcome_email
@@ -16,7 +16,8 @@ from app.workers.tasks import send_email_task
 
 router = APIRouter()
 
-@router.get("", response_model=APIResponse[UserListResponse], status_code=status.HTTP_200_OK) 
+@router.get("", response_model=APIResponse[UserListResponse], status_code=status.HTTP_200_OK)
+@cache(expire=60, namespace="users")
 async def retrieve_users(db: AsyncSession =  Depends(get_db),
                          limit : int = Query(10),
                          offset: int = Query(0),
@@ -27,7 +28,8 @@ async def retrieve_users(db: AsyncSession =  Depends(get_db),
     return await get_all_users(db, limit, offset, gender, role, search)
     
 
-@router.get("/{user_id}", response_model=APIResponse[UserResponse], status_code=status.HTTP_200_OK) 
+@router.get("/{user_id}", response_model=APIResponse[UserResponse], status_code=status.HTTP_200_OK)
+@cache(expire=120, namespace="user-detail")
 async def retrieve_user(user_id: UUID, db: AsyncSession =  Depends(get_db), current_user: User = Depends(get_current_user))-> APIResponse[UserResponse]:
     get_users = await get_user_by_id(user_id,db)
     logger.info("This should show up in the terminal and in logs/app.log")

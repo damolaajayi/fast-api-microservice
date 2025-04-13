@@ -13,10 +13,10 @@ DB_PASSWORD=os.getenv("DB_PASSWORD")
 
 DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-SYNC_DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 engine = create_async_engine(
     DATABASE_URL,
+    echo=True,
     connect_args={
         "server_settings": {
             "search_path": "public"
@@ -32,6 +32,7 @@ AsyncSessionLocal = sessionmaker(
 
 Base = declarative_base()
 
-async def get_db():
+async def get_db() -> AsyncSession:
     async with AsyncSessionLocal() as session:
         yield session
+        

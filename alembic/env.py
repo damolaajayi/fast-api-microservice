@@ -1,12 +1,13 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
-from alembic import context
-
 from app.db.session import Base
-from app.api.v1.users import models 
+from sqlalchemy import pool
+from os import getenv
+from alembic import context
+from sqlalchemy import create_engine
+
+from app.api.v1.users.models import User  # explicitly import model
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -41,7 +42,8 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url", Base.SYNC_DATABASE_URL)
+    #url = config.get_main_option("sqlalchemy.url", Base.SYNC_DATABASE_URL)
+    url = getenv("SYNC_DATABASE_URL")
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -54,17 +56,15 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode.
+    """Run migrations in 'online' mode."""
 
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
+    # Get the database URL from environment variable
+    url = getenv("SYNC_DATABASE_URL")
 
-    """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    if not url:
+        raise ValueError("SYNC_DATABASE_URL environment variable is not set")
+
+    connectable = create_engine(url, poolclass=pool.NullPool)
 
     with connectable.connect() as connection:
         context.configure(

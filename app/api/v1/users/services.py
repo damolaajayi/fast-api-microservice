@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+from fastapi_cache import FastAPICache
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import NoResultFound
@@ -8,6 +9,7 @@ from app.api.v1.users.models import GenderEnum, RoleEnum, User
 from app.api.v1.users.schemas import UserCreate, UserListResponse, UserResponse, UserUpdate
 from app.schemas.response import APIResponse
 from app.services.auth.hashing import hash_password, verify_password
+from app.utils.cache_helpers import clear_user_detail_cache
 
 
 async def get_all_users(db: AsyncSession, 
@@ -87,6 +89,8 @@ async def remove_user(user_id: UUID, db: AsyncSession):
           raise HTTPException(404, detail="User not found")
      await db.delete(user)
      await db.commit()
+     await FastAPICache.clear(namespace="users")
+     await clear_user_detail_cache(str(user_id))
      return {"detail": f"User with id {user_id} deleted successfully"}
 
 
@@ -99,6 +103,8 @@ async def update_user(user_id: UUID, user_update: UserUpdate, db: AsyncSession):
     for key, value in user_update.model_dump(exclude_unset=True).items():
           setattr(user, key, value)
     await db.commit()
+    await FastAPICache.clear(namespace="users")
+    await clear_user_detail_cache(str(user_id))
     await db.refresh(user)
     return user
 

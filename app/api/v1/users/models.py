@@ -4,7 +4,6 @@ from typing import Optional, List
 import uuid
 from pydantic import BaseModel
 from enum import Enum
-
 from app.db.session import Base
 
 class GenderEnum(str, Enum):
@@ -18,6 +17,7 @@ class RoleEnum(str, Enum):
     
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = {"schema": "public"}
     id= Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
