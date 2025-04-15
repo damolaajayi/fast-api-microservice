@@ -1,6 +1,8 @@
 from datetime import datetime
-from pydantic import BaseModel
+from typing import Annotated
+from pydantic import BaseModel, EmailStr, Field
 
+PasswordStr = Annotated[str, Field(min_length=8)]
 
 class LoginRequest(BaseModel):
     username: str 
@@ -16,3 +18,11 @@ class TokenPairResponse(TokenResponse):
     
 class RefreshRequest(BaseModel):
     refresh_token: str
+    
+class RequestPasswordReset(BaseModel):
+    email: EmailStr
+    
+class ConfirmPasswordReset(BaseModel):
+    token: str
+    new_password: PasswordStr
+    

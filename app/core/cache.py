@@ -1,12 +1,10 @@
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 import redis.asyncio as redis
-from fastapi import Request
-    
-    
-from fastapi import Request
+from fastapi import Request, Response
 
-def custom_cache_key_builder(func, namespace: str = "", request: Request = None):
+def custom_cache_key_builder(func, namespace: str = "", request: Request = None, response: Response = None, args: tuple = (),
+    kwargs: dict = {}):
     path = request.url.path
     query_items = sorted(request.query_params.items())
     query_str = "&".join(f"{k}={v}" for k, v in query_items)
