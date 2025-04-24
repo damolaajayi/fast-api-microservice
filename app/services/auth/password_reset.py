@@ -6,7 +6,7 @@ from app.services.auth.jwt import ALGORITHM
 
 
 
-RESET_SECRET_KEY = os.getenv("RSET_SECRET_KEY", "reset_secret_key")
+RESET_SECRET_KEY = os.getenv("RESET_SECRET_KEY", "reset_secret_key")
 
 def create_reset_token(email: str, expires_minutes: int =15) -> str:
     expire = datetime.utcnow() + timedelta(minutes=expires_minutes)
