@@ -41,11 +41,12 @@ jobs:
 
       - name: Run Alembic migrations
         env:
-          DB_USER:  ${{ secrets.DB_USER }}
-          DB_PASSWORD:  ${{ secrets.DB_PASSWORD }}
-          DB_NAME:  ${{ secrets.DB_NAME }}
-          DB_HOST:  ${{ secrets.DB_HOST }}
-          DB_PORT: 5432
+          SYNC_DATABASE_URL: postgresql://${{secrets.DB_USER}}:${{secrets.DB_PASSWORD}}@${{secrets.DB_HOST}}:5432/DB_NAME
+          #DB_USER:  ${{ secrets.DB_USER }}
+          #DB_PASSWORD:  ${{ secrets.DB_PASSWORD }}
+          #DB_NAME:  ${{ secrets.DB_NAME }}
+          #DB_HOST:  ${{ secrets.DB_HOST }}
+          #DB_PORT: 5432
         run: |
           alembic upgrade head
 
