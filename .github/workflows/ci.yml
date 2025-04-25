@@ -67,7 +67,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Test secret injection without masking
+      - name: Test Alembic DB connectivity
         env:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
@@ -75,18 +75,25 @@ jobs:
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
         run: |
-          # Use secrets safely in logic without printing them
-          if [ -z "$DB_USER" ]; then
-          echo "❌ DB_USER is not set!"
-          exit 1
+          echo "🧪 Verifying DB secrets without printing them"
+
+          if [ -z "$DB_USER" ] || [ "$DB_USER" = "***" ]; then
+          echo "❌ DB_USER is not set properly"; exit 1
           fi
-          if [ "$DB_PORT" -eq 5432 ]; then
-            echo "✅ DB_PORT is correctly set"
-          else
-            echo "❌ DB_PORT is incorrect"
-          exit 1
+
+          if [ -z "$DB_HOST" ] || [ "$DB_HOST" = "***" ]; then
+          echo "❌ DB_HOST is not set properly"; exit 1
           fi
-          
+
+          echo "✅ Secrets are set"
+
+          echo "🔧 Installing PostgreSQL client"
+          sudo apt-get update && sudo apt-get install -y postgresql-client
+
+          echo "🐘 Trying to connect to the database..."
+          export PGPASSWORD=$DB_PASSWORD
+          psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -c '\l'
+
       - name: Try connecting to DB
         env:
           DB_USER: ${{ secrets.DB_USER }}
