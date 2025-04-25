@@ -7,32 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  check-secrets:
-    name: 🔍 Check Secrets Injection
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Echo and Validate Secrets
-        env:
-          DB_USER: ${{ secrets.NEW_DB_USER }}
-          DB_PASSWORD: ${{ secrets.NEW_DB_PASSWORD }}
-          DB_NAME: ${{ secrets.NEW_DB_NAME }}
-          DB_HOST: ${{ secrets.NEW_DB_HOST }}
-          DB_PORT: ${{ secrets.NEW_DB_PORT }}
-        run: |
-          echo "🔍 Checking secrets..."
-          echo "DB_USER = $DB_USER"
-          echo "DB_HOST = $DB_HOST"
-          echo "DB_PORT = $DB_PORT"
-
-          if [ "$DB_USER" = "***" ] || [ -z "$DB_USER" ]; then
-            echo "❌ DB_USER not properly injected"; exit 1
-          fi
-
-          echo "✅ Secrets are properly set."
-
   build-test-push:
-    name: 🚀 Build, Test, and Push Docker Image
+    name: 🚀 Build, Test, Migrate, Push Docker Image
     runs-on: ubuntu-latest
 
     services:
@@ -64,31 +40,28 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: 📄 Inject .env.ci from Secret
+        run: |
+          echo "${{ secrets.ENV_CI_FILE }}" > .env.ci
+
+      - name: ✅ Load Environment Variables
+        run: |
+          set -a
+          source .env.ci
+          set +a
+
       - name: 🐘 Install PostgreSQL Client
         run: |
           sudo apt-get update && sudo apt-get install -y postgresql-client
 
       - name: 🐘 Test Database Connectivity
-        env:
-          DB_USER: ${{ secrets.NEW_DB_USER }}
-          DB_PASSWORD: ${{ secrets.NEW_DB_PASSWORD }}
-          DB_NAME: ${{ secrets.NEW_DB_NAME }}
-          DB_HOST: ${{ secrets.NEW_DB_HOST }}
-          DB_PORT: ${{ secrets.NEW_DB_PORT }}
         run: |
           export PGPASSWORD=$DB_PASSWORD
           psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -c '\l'
 
       - name: 🛠 Run Alembic Migrations
-        env:
-          DB_USER: ${{ secrets.NEW_DB_USER }}
-          DB_PASSWORD: ${{ secrets.NEW_DB_PASSWORD }}
-          DB_NAME: ${{ secrets.NEW_DB_NAME }}
-          DB_HOST: ${{ secrets.NEW_DB_HOST }}
-          DB_PORT: ${{ secrets.NEW_DB_PORT }}
         run: |
           export SYNC_DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
-          echo "Running Alembic migrations..."
           alembic upgrade head
 
       - name: 🐳 Set up Docker Buildx
