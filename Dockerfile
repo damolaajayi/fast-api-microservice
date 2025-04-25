@@ -6,6 +6,8 @@ WORKDIR /app
 
 # Copy project files
 COPY . .
+COPY .env.ci .env
+COPY entrypoint.sh /app/entrypoint.sh
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
