@@ -7,6 +7,34 @@ on:
     branches: [ main ]
 
 jobs:
+  debug-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo DB secrets
+        env:
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+        run: |
+          echo "🔍 DB_USER = $DB_USER"
+          echo "🔍 DB_PASSWORD = $DB_PASSWORD"
+          echo "🔍 DB_NAME = $DB_NAME"
+          echo "🔍 DB_HOST = $DB_HOST"
+          echo "🔍 DB_PORT = $DB_PORT"
+
+          if [ "$DB_USER" = "***" ]; then
+            echo "❌ These values are not secrets, they are literally ***"
+            exit 1
+          fi
+
+          if [ -z "$DB_USER" ]; then
+            echo "❌ GitHub Secrets not injected"
+            exit 1
+          else
+            echo "✅ Secrets are available"
+          fi
   build-test-push:
     runs-on: ubuntu-latest
 
