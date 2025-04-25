@@ -44,6 +44,8 @@ def run_migrations_offline() -> None:
     """
     #url = config.get_main_option("sqlalchemy.url", Base.SYNC_DATABASE_URL)
     url = getenv("SYNC_DATABASE_URL")
+    if not url:
+        raise RuntimeError("SYNC_DATABASE_URL not set!")
     context.configure(
         url=url,
         target_metadata=target_metadata,
