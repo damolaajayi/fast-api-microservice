@@ -1,4 +1,4 @@
-name: FastAPI CI/CD Pipeline
+name: FastAPI CI/CD Secure Pipeline
 
 on:
   push:
@@ -8,23 +8,8 @@ on:
 
 jobs:
   build-test-push:
-    name: 🚀 Build, Test, Migrate, Push Docker Image
+    name: 🚀 Build, Test, Migrate, Push
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
 
     steps:
       - name: 🛒 Checkout Repository
@@ -41,8 +26,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: 📄 Inject .env.ci from Secret
-        run: |
-          echo "${{ secrets.ENV_CI_FILE }}" > .env.ci
+        run: echo "${{ secrets.ENV_CI_FILE }}" > .env.ci
 
       - name: ✅ Load Environment Variables
         run: |
@@ -50,11 +34,26 @@ jobs:
           source .env.ci
           set +a
 
+      - name: 🐳 Launch PostgreSQL with Secure Credentials
+        run: |
+          docker run -d \
+            --name pg-test \
+            -e POSTGRES_USER=$DB_USER \
+            -e POSTGRES_PASSWORD=$DB_PASSWORD \
+            -e POSTGRES_DB=$DB_NAME \
+            -p 5432:5432 \
+            postgres:16
+
+      - name: 🐘 Wait for PostgreSQL to be ready
+        run: |
+          sleep 10  # crude but effective
+          docker exec pg-test pg_isready
+
       - name: 🐘 Install PostgreSQL Client
         run: |
           sudo apt-get update && sudo apt-get install -y postgresql-client
 
-      - name: 🐘 Test Database Connectivity
+      - name: 🔌 Test DB Connection
         run: |
           export PGPASSWORD=$DB_PASSWORD
           psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -c '\l'
