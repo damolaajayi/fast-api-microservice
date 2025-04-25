@@ -51,6 +51,9 @@ jobs:
         run: |
           export SYNC_DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
           echo "Running Alembic migration with DB URL pointing to ${DB_HOST}:${DB_PORT}"
+          echo "DB_USER=$DB_USER"
+          echo "DB_HOST=$DB_HOST"
+          echo "DB_PORT=$DB_PORT"
           alembic upgrade head
 
       - name: Set up Docker Buildx
