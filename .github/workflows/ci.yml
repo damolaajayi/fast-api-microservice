@@ -39,15 +39,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      
+
       - name: Run Alembic migrations
         env:
-          SYNC_DATABASE_URL: postgresql://${{secrets.DB_USER}}:${{secrets.DB_PASSWORD}}@${{secrets.DB_HOST}}:${{secrets.DB_PORT}}/${{secrets.DB_NAME}}
-          #DB_USER:  ${{ secrets.DB_USER }}
-          #DB_PASSWORD:  ${{ secrets.DB_PASSWORD }}
-          #DB_NAME:  ${{ secrets.DB_NAME }}
-          #DB_HOST:  ${{ secrets.DB_HOST }}
-          #DB_PORT: 5432
+          DB_USER:  ${{ secrets.DB_USER }}
+          DB_PASSWORD:  ${{ secrets.DB_PASSWORD }}
+          DB_NAME:  ${{ secrets.DB_NAME }}
+          DB_HOST:  ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
         run: |
+          export SYNC_DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
+          echo "Using SYNC_DATABASE_URL=$SYNC_DATABASE_URL"
           alembic upgrade head
 
       - name: Set up Docker Buildx
