@@ -41,7 +41,7 @@ jobs:
 
       - name: Run Alembic migrations
         env:
-          SYNC_DATABASE_URL: postgresql://${{secrets.DB_USER}}:${{secrets.DB_PASSWORD}}@${{secrets.DB_HOST}}:5432/DB_NAME
+          SYNC_DATABASE_URL: postgresql://${{secrets.DB_USER}}:${{secrets.DB_PASSWORD}}@${{secrets.DB_HOST}}:5432/${{secrets.DB_NAME}}
           #DB_USER:  ${{ secrets.DB_USER }}
           #DB_PASSWORD:  ${{ secrets.DB_PASSWORD }}
           #DB_NAME:  ${{ secrets.DB_NAME }}
