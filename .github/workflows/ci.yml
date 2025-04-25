@@ -66,25 +66,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Setup and Test DB
-        env:
-          DB_USER_RAW: ${{ secrets.NEW_DB_USER }}
-          DB_PASSWORD: ${{ secrets.NEW_DB_PASSWORD }}
-          DB_NAME: ${{ secrets.NEW_DB_NAME }}
-          DB_HOST_RAW: ${{ secrets.NEW_DB_HOST }}
-          DB_PORT_RAW: ${{ secrets.NEW_DB_PORT }}
-        run: |
-          # Clean up the values (strip suffixes we added)
-          DB_USER=$(echo "$DB_USER_RAW" | sed 's/-user$//')
-          DB_HOST=$(echo "$DB_HOST_RAW" | sed 's/-db$//')
-          DB_PORT=$(echo "$DB_PORT_RAW" | sed 's/-db$//')
-
-          echo "Secrets injected and unmasked"
-    
-          sudo apt-get update && sudo apt-get install -y postgresql-client
-
-          export PGPASSWORD=$DB_PASSWORD
-          psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -c '\l'
 
 
       - name: Test Alembic DB connectivity
