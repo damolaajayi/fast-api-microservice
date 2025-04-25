@@ -12,11 +12,11 @@ jobs:
     steps:
       - name: Echo DB secrets
         env:
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.NEW_DB_USER }}
+          DB_PASSWORD: ${{ secrets.NEW_DB_PASSWORD }}
+          DB_NAME: ${{ secrets.NEW_DB_NAME }}
+          DB_HOST: ${{ secrets.NEW_DB_HOST }}
+          DB_PORT: ${{ secrets.NEW_DB_PORT }}
         run: |
           echo "🔍 DB_USER = $DB_USER"
           echo "🔍 DB_PASSWORD = $DB_PASSWORD"
@@ -69,11 +69,11 @@ jobs:
 
       - name: Test Alembic DB connectivity
         env:
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.NEW_DB_USER }}
+          DB_PASSWORD: ${{ secrets.NEW_DB_PASSWORD }}
+          DB_NAME: ${{ secrets.NEW_DB_NAME }}
+          DB_HOST: ${{ secrets.NEW_DB_HOST }}
+          DB_PORT: ${{ secrets.NEW_DB_PORT }}
         run: |
           echo "🧪 Verifying DB secrets without printing them"
 
@@ -96,11 +96,11 @@ jobs:
 
       - name: Try connecting to DB
         env:
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.NEW_DB_USER }}
+          DB_PASSWORD: ${{ secrets.NEW_DB_PASSWORD }}
+          DB_NAME: ${{ secrets.NEW_DB_NAME }}
+          DB_HOST: ${{ secrets.NEW_DB_HOST }}
+          DB_PORT: ${{ secrets.NEW_DB_PORT }}
         run: |
           apt-get update && apt-get install -y postgresql-client
           export PGPASSWORD=$DB_PASSWORD
@@ -108,11 +108,11 @@ jobs:
 
       - name: Run Alembic migrations
         env:
-          DB_USER:  ${{ secrets.DB_USER }}
-          DB_PASSWORD:  ${{ secrets.DB_PASSWORD }}
-          DB_NAME:  ${{ secrets.DB_NAME }}
-          DB_HOST:  ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER:  ${{ secrets.NEW_DB_USER }}
+          DB_PASSWORD:  ${{ secrets.NEW_DB_PASSWORD }}
+          DB_NAME:  ${{ secrets.NEW_DB_NAME }}
+          DB_HOST:  ${{ secrets.NEW_DB_HOST }}
+          DB_PORT: ${{ secrets.NEW_DB_PORT }}
         run: |
           export SYNC_DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
           echo "Running Alembic migration with DB URL pointing to ${DB_HOST}:${DB_PORT}"
